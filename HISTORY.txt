@@ -1,0 +1,22 @@
+# How to build
+pyinstaller --noconsole --onefile --add-data "helper_icon.png;." --icon=helper_icon.ico main.py
+
+v.1.1
+1. Add iconbitmap system.
+
+v.1.2
+1. Add mode setting feature.
+2. Add dropdown UI.
+
+v.1.3
+1. Apply dark theme.
+
+v.2
+1. Code segmentation.
+1-1. Divide single code to modules.
+
+v.2.1
+1. Add string checker for bash copy feature.
+1-1. Replace ' and " char to \' and \"
+2. Fixing <Shift+Tab> event handling.
+
