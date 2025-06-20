@@ -1,43 +1,14 @@
 import tkinter as tk
 from tkinter import ttk
 from config import load_format, save_format, load_messages
-from constants import MESSAGES, ICON_PNG
+from constants import ICON_PNG
 from clipboard import *
-from utils import get_resource_path, today_str
+from undo_stack import UndoStack
+from event_handler import EventHandler
+from utils import get_resource_path
 from theme import apply_dark_theme
 from PIL import Image, ImageTk
 import os
-import re
-
-def handle_tab(event, description_text):
-    current_line_start = description_text.index("insert linestart")
-    current_line_end = description_text.index("insert lineend")
-    current_line = description_text.get(current_line_start, current_line_end)
-
-    if event.keysym in ("ISO_Left_Tab", "Tab") and event.state & 0x1:
-        if current_line.startswith("+"):
-            description_text.delete(current_line_start, f"{current_line_start}+1c")
-        return "break"
-    elif event.keysym == "Tab":
-        description_text.insert(current_line_start, "+")
-        return "break"
-    
-def on_message_click(prefix, title_entry, description_text, format_var, is_left_button):
-    if is_left_button:
-        original_title = title_entry.get()
-        cleaned_title = re.sub(r"^\[[^\]]+\]\s[\u2190-\U0010ffff]+\s\d{2}\.\d{2}\.\d{2}\s*", "", original_title)
-        full_title = prefix + today_str() + " " + cleaned_title if prefix != "[Scene] 🎥 Update Scene" else prefix
-        title_entry.delete(0, tk.END)
-        title_entry.insert(0, full_title)
-
-    fmt = format_var.get()
-
-    if fmt in ["Git Bash", "VSCode"]:
-        handle_bash(title_entry, description_text)
-    elif is_left_button:
-        handle_title(title_entry)
-    else:
-        handle_body(description_text)
 
 def launch_app():
     root = tk.Tk()
@@ -78,19 +49,16 @@ def launch_app():
     scrollable = tk.Frame(canvas, bg="#2e2e2e")
     window_id = canvas.create_window((0, 0), window=scrollable, anchor="nw")
 
-    def resize_scrollable(event):
-        canvas.itemconfig(window_id, width=event.width)
-
     scrollable.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
     canvas.configure(yscrollcommand=scrollbar.set)
-    canvas.bind("<Configure>", resize_scrollable)
+    canvas.bind("<Configure>", lambda e: canvas.itemconfig(window_id, width=e.width))
 
     scrollable.columnconfigure(0, weight=1)
     for msg in load_messages():
         btn = ttk.Button(scrollable, text=msg)
         btn.config(
-            command=lambda m=msg: 
-                on_message_click(m, title_entry, description_text, format_var, True)
+            command=lambda m=msg:
+            handler.on_message_click(m, title_entry, description_text, format_var, True)
         )
         btn.grid(sticky="ew", padx=2, pady=2)
 
@@ -108,9 +76,11 @@ def launch_app():
     drop.pack(side="right")
     drop.bind("<<ComboboxSelected>>", lambda e: save_format(format_var.get()))
 
-    title_entry = ttk.Entry(right_frame)
+    title_entry = tk.Entry(right_frame)
     title_entry.grid(row=1, column=0, sticky="ew", pady=(0, 10))
-
+    title_undo = UndoStack(title_entry)
+    handler = EventHandler(title_undo)
+    
     tk.Label(right_frame, text="설명문 입력란", bg="#2e2e2e", fg="#f5f5f5").grid(row=2, column=0, sticky="w")
 
     text_frame = tk.Frame(right_frame)
@@ -120,21 +90,21 @@ def launch_app():
 
     description_text = tk.Text(text_frame, wrap="word", yscrollcommand=scroll.set, undo=True, maxundo=-1, bg="#3b3b3b", fg="#f5f5f5", insertbackground="#f5f5f5")
     description_text.pack(fill=tk.BOTH, expand=True)
-    description_text.bind("<Tab>", lambda e: handle_tab(e, description_text))
-    description_text.bind("<Shift-Tab>", lambda e: handle_tab(e, description_text))
-    description_text.bind("<ISO_Left_Tab>", lambda e: handle_tab(e, description_text))
+    description_text.bind("<Tab>", lambda e: handler.handle_tab(e, description_text))
+    description_text.bind("<Shift-Tab>", lambda e: handler.handle_tab(e, description_text))
+    description_text.bind("<ISO_Left_Tab>", lambda e: handler.handle_tab(e, description_text))
     scroll.config(command=description_text.yview)
 
     ttk.Button(
         right_frame,
         text="복사하기",
         command=lambda:
-            on_message_click("", title_entry, description_text, format_var, False)
+            handler.on_message_click("", title_entry, description_text, format_var, False)
     ).grid(row=4, column=0, pady=10, sticky="ew")
 
-    root.bind("<Control-z>", lambda e: description_text.event_generate("<<Undo>>"))
-    root.bind("<Control-Z>", lambda e: description_text.event_generate("<<Undo>>"))
-    root.bind("<Control-Shift-Z>", lambda e: description_text.event_generate("<<Redo>>"))
-    root.bind("<Control-y>", lambda e: description_text.event_generate("<<Redo>>"))
+    root.bind_all("<Control-z>", handler.handle_undo_redo)
+    root.bind_all("<Control-Z>", handler.handle_undo_redo)
+    root.bind_all("<Control-y>", handler.handle_undo_redo)
+    root.bind_all("<Control-Shift-Z>", handler.handle_undo_redo)
 
     root.mainloop()
