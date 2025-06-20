@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from config import load_format, save_format
+from config import load_format, save_format, load_messages
 from constants import MESSAGES, ICON_PNG
 from clipboard import *
 from utils import get_resource_path, today_str
@@ -86,7 +86,7 @@ def launch_app():
     canvas.bind("<Configure>", resize_scrollable)
 
     scrollable.columnconfigure(0, weight=1)
-    for msg in MESSAGES:
+    for msg in load_messages():
         btn = ttk.Button(scrollable, text=msg)
         btn.config(
             command=lambda m=msg: 
