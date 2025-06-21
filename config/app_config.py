@@ -1,5 +1,5 @@
 import json, os
-from constants import MESSAGES
+from constant.constants import MESSAGES
 
 CONFIG_FILE = "config.json"
 DEFAULT_CONFIG = {

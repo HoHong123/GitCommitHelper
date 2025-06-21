@@ -1,5 +1,6 @@
 import re
 import tkinter as tk
+from datetime import datetime
 
 def format_description(text_widget: tk.Text):
     lines = text_widget.get("1.0", tk.END).splitlines()
@@ -32,3 +33,6 @@ def format_description(text_widget: tk.Text):
 
     text_widget.delete("1.0", tk.END)
     text_widget.insert("1.0", "\n".join(formatted))
+
+def today_str():
+    return datetime.today().strftime("%d.%m.%y")

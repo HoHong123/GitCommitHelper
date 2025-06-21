@@ -1,23 +1,21 @@
 import os
 import tkinter as tk
 from tkinter import ttk
-from app_config import *
-from clipboard import *
-from app_config import (
+from config.app_config import (
     load_format,
     save_format,
     load_messages,
     load_language,
     save_language
 )
-from undo_stack import UndoStack
-from constants import *
-from auto_scrollbar import AutoScrollbar
-from theme import apply_dark_theme
-from event_handler import EventHandler
-from utils import get_resource_path
+from core.undo_stack import UndoStack
+from constant.constants import *
+from constant.i18n import get_text
+from events.event_handler import EventHandler
+from ui.theme import apply_dark_theme
+from ui.auto_scrollbar import AutoScrollbar
+from utils.asset_loader import get_resource_path
 from PIL import Image, ImageTk
-from i18n import get_text
 
 def launch_app():
     root = tk.Tk()
@@ -49,7 +47,7 @@ def launch_app():
     main_frame.columnconfigure(1, weight=3)
     main_frame.rowconfigure(0, weight=1)
 
-    # 왼쪽 프레임 (메시지 버튼)
+    # 왼쪽 프레임
     left_frame = tk.Frame(main_frame, bg=BG_MAIN)
     left_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
     left_frame.columnconfigure(0, weight=1)
@@ -82,7 +80,7 @@ def launch_app():
         btn.grid(sticky="ew", padx=2, pady=2)
         buttons.append(btn)
 
-    # 오른쪽 프레임 (입력 폼)
+    # 오른쪽 프레임
     right_frame = tk.Frame(main_frame, bg=BG_MAIN)
     right_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
     right_frame.rowconfigure(3, weight=1)
