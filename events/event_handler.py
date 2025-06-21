@@ -1,6 +1,6 @@
 import tkinter as tk
 import re
-from utils import today_str
+from utils.formatter import today_str
 
 class EventHandler:
     def __init__(self, title_undo):
@@ -48,11 +48,11 @@ class EventHandler:
 
         fmt = format_var.get()
         if fmt in ["Git Bash", "VSCode"]:
-            from clipboard import handle_bash
+            from core.clipboard import handle_bash
             handle_bash(title_entry, description_text)
         elif is_left_button:
-            from clipboard import handle_title
+            from core.clipboard import handle_title
             handle_title(title_entry)
         else:
-            from clipboard import handle_body
+            from core.clipboard import handle_body
             handle_body(description_text)
