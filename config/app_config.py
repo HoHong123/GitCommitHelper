@@ -1,10 +1,11 @@
 import json, os
-from constants import MESSAGES
+from constant.constants import MESSAGES
 
 CONFIG_FILE = "config.json"
 DEFAULT_CONFIG = {
     "format": "GitHub Desktop",
-    "default_messages": MESSAGES
+    "default_messages": MESSAGES,
+    "language": "ko"
 }
 
 def load_config():
@@ -37,4 +38,12 @@ def load_messages():
 def save_messages(messages):
     config = load_config()
     config["default_messages"] = messages
+    save_config(config)
+
+def load_language():
+    return load_config().get("language", "ko")
+
+def save_language(lang_code):
+    config = load_config()
+    config["language"] = lang_code
     save_config(config)
